@@ -9,11 +9,8 @@ import (
 )
 
 func main() {
-	hubspotChan := make(chan int)
-	hubspotRepo := hubspot.NewHubspotRepo("hubspot", hubspotChan)
-
-	mondayChan := make(chan int)
-	mondayRepo := monday.NewMondyRepoa("monday", mondayChan)
+	hubspotRepo := hubspot.NewHubspotRepo("hubspot")
+	mondayRepo := monday.NewMondyRepoa("monday")
 
 	taps := []taprunner.Plugin{
 		hubspotRepo,
@@ -21,16 +18,19 @@ func main() {
 	}
 
 	tap := taprunner.NewSerice(taps)
-	tap.RunTaps()
+	tapChans := tap.RunTaps()
 
-	for {
+	chan0 := tapChans[0]
+	chan1 := tapChans[1]
+	defer close(chan0)
+	defer close(chan1)
+
+	for i := 0; i < 2; i++ {
 		select {
-
-		case hubspotData := <-hubspotChan:
-			fmt.Println(hubspotData)
-
-		case mondayData := <-mondayChan:
-			fmt.Println(mondayData)
+		case first := <-chan0:
+			fmt.Println(first)
+		case second := <-chan1:
+			fmt.Println(second)
 		}
 	}
 
