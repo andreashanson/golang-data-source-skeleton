@@ -7,19 +7,14 @@ import (
 
 type HubspotRepo struct {
 	Name string
-	Chan chan int
 }
 
 func NewHubspotRepo(name string) HubspotRepo {
-	hubspotChan := make(chan int)
-	return HubspotRepo{Name: name, Chan: hubspotChan}
+	return HubspotRepo{Name: name}
 }
 
-func (hsr HubspotRepo) Run() chan int {
-	go func() {
-		fmt.Println("Started tap: ", hsr.Name)
-		time.Sleep(time.Second * 6)
-		hsr.Chan <- 555
-	}()
-	return hsr.Chan
+func (hsr HubspotRepo) Run(c chan []byte) {
+	fmt.Println("Started tap: ", hsr.Name)
+	time.Sleep(time.Second * 7)
+	c <- []byte(`{"tap": "hubspot"}`)
 }

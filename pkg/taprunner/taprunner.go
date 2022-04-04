@@ -1,7 +1,7 @@
 package taprunner
 
 type Plugin interface {
-	Run() chan int
+	Run(chan []byte)
 }
 
 type Service struct {
@@ -12,11 +12,11 @@ func NewSerice(repos []Plugin) *Service {
 	return &Service{plugins: repos}
 }
 
-func (s *Service) RunTaps() []chan int {
-	var chanSlice []chan int
+func (s *Service) RunPlugins() chan []byte {
+	tapResponseChan := make(chan []byte)
+
 	for _, tap := range s.plugins {
-		tapchan := tap.Run()
-		chanSlice = append(chanSlice, tapchan)
+		go tap.Run(tapResponseChan)
 	}
-	return chanSlice
+	return tapResponseChan
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/andreashanson/data-sources/pkg/external/plugins/hubspot"
@@ -17,21 +18,25 @@ func main() {
 		mondayRepo,
 	}
 
-	tap := taprunner.NewSerice(taps)
-	tapChans := tap.RunTaps()
-
-	chan0 := tapChans[0]
-	chan1 := tapChans[1]
-	defer close(chan0)
-	defer close(chan1)
-
-	for i := 0; i < 2; i++ {
-		select {
-		case first := <-chan0:
-			fmt.Println(first)
-		case second := <-chan1:
-			fmt.Println(second)
-		}
+	type JSONResponse struct {
+		Body string `json:"tap"`
 	}
 
+	tap := taprunner.NewSerice(taps)
+	tapChan := tap.RunPlugins()
+
+	defer close(tapChan)
+
+	for i := 0; i < len(taps); i++ {
+		select {
+		case first := <-tapChan:
+			var jsonR JSONResponse
+
+			err := json.Unmarshal(first, &jsonR)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(jsonR.Body, "finished...")
+		}
+	}
 }
