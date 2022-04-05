@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/andreashanson/data-sources/pkg/external/plugins/hubspot"
@@ -10,8 +9,8 @@ import (
 )
 
 func main() {
-	hubspotRepo := hubspot.NewHubspotRepo("hubspot")
-	mondayRepo := monday.NewMondyRepoa("monday")
+	hubspotRepo := hubspot.NewHubspotRepo()
+	mondayRepo := monday.NewMondyRepo()
 
 	taps := []taprunner.Plugin{
 		hubspotRepo,
@@ -23,20 +22,22 @@ func main() {
 	}
 
 	tap := taprunner.NewSerice(taps)
-	tapChan := tap.RunPlugins()
-
+	tapChan, numJobs := tap.RunPlugins()
 	defer close(tapChan)
-
-	for i := 0; i < len(taps); i++ {
-		select {
-		case first := <-tapChan:
-			var jsonR JSONResponse
-
-			err := json.Unmarshal(first, &jsonR)
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println(jsonR.Body, "finished...")
-		}
+	for a := 1; a <= numJobs; a++ {
+		fmt.Println(<-tapChan)
 	}
+
+	//for i := 0; i < len(taps); i++ {
+	//	select {
+	//	case first := <-tapChan:
+	//		var jsonR JSONResponse
+	//
+	//		err := json.Unmarshal(first, &jsonR)
+	//		if err != nil {
+	//			fmt.Println(err)
+	//		}
+	//		fmt.Println(jsonR.Body, "finished...")
+	//	}
+	//}
 }
