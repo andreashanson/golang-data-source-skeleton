@@ -4,17 +4,26 @@ import (
 	"fmt"
 
 	"github.com/andreashanson/data-sources/pkg/external/plugins/hubspot"
+	"github.com/andreashanson/data-sources/pkg/external/plugins/linkedin"
 	"github.com/andreashanson/data-sources/pkg/external/plugins/monday"
+	"github.com/andreashanson/data-sources/pkg/external/plugins/outreach"
+	"github.com/andreashanson/data-sources/pkg/external/plugins/todilo"
 	"github.com/andreashanson/data-sources/pkg/taprunner"
 )
 
 func main() {
 	hubspotRepo := hubspot.NewHubspotRepo()
 	mondayRepo := monday.NewMondyRepo()
+	outreachRepo := outreach.NewMondyRepo()
+	todiloRepo := todilo.NewTodiloRepo()
+	linkedinRepo := linkedin.NewLinkedinRepo()
 
 	taps := []taprunner.Plugin{
 		hubspotRepo,
 		mondayRepo,
+		outreachRepo,
+		todiloRepo,
+		linkedinRepo,
 	}
 
 	type JSONResponse struct {
@@ -25,19 +34,8 @@ func main() {
 	tapChan, numJobs := tap.RunPlugins()
 	defer close(tapChan)
 	for a := 1; a <= numJobs; a++ {
-		fmt.Println(<-tapChan)
-	}
+		response := <-tapChan
+		fmt.Println(string(response))
 
-	//for i := 0; i < len(taps); i++ {
-	//	select {
-	//	case first := <-tapChan:
-	//		var jsonR JSONResponse
-	//
-	//		err := json.Unmarshal(first, &jsonR)
-	//		if err != nil {
-	//			fmt.Println(err)
-	//		}
-	//		fmt.Println(jsonR.Body, "finished...")
-	//	}
-	//}
+	}
 }

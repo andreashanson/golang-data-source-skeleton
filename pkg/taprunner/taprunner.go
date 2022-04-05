@@ -16,16 +16,15 @@ func NewSerice(repos []Plugin) *Service {
 	return &Service{plugins: repos}
 }
 
-func (s *Service) RunPlugins() (chan Plugin, int) {
+func (s *Service) RunPlugins() (chan []byte, int) {
 	numJobs := len(s.plugins)
 	tapResponseChan := make(chan []byte, numJobs)
 
 	completedJobs := make(chan Plugin, numJobs)
-	//defer close(completedJobs)
 	tapJobs := make(chan Plugin, numJobs)
 	defer close(tapJobs)
 
-	for w := 1; w <= 2; w++ {
+	for w := 1; w <= 5; w++ {
 		go worker(w, tapJobs, completedJobs, tapResponseChan)
 	}
 
@@ -33,18 +32,7 @@ func (s *Service) RunPlugins() (chan Plugin, int) {
 		tapJobs <- tap
 	}
 
-	//for j := 1; j <= numJobs; j++ {
-	//	jobs <- j
-	//}
-	//for a := 1; a <= numJobs; a++ {
-	//	fmt.Println(<-completedJobs)
-	//}
-
-	//for _, tap := range s.plugins {
-	//	go tap.Run(tapResponseChan)
-	//}
-
-	return completedJobs, numJobs
+	return tapResponseChan, numJobs
 }
 
 func worker(id int, jobs chan Plugin, completedJobs chan Plugin, tapChan chan []byte) {

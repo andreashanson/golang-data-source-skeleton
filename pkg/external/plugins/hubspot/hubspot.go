@@ -15,6 +15,6 @@ func NewHubspotRepo() HubspotRepo {
 
 func (hsr HubspotRepo) Run(c chan []byte) {
 	fmt.Println("Started tap:", hsr.Name)
-	time.Sleep(time.Second * 7)
+	time.Sleep(time.Second * 5)
 	c <- []byte(`{"tap": "hubspot"}`)
 }
